@@ -5,7 +5,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  Param,
   Post,
   UploadedFile,
   UseGuards,
@@ -47,7 +51,16 @@ export class NewsController {
 
   // Get all news
   @Get()
+  @HttpCode(HttpStatus.OK)
   getAll() {
     return this.newsService.getAll();
+  }
+
+  // Delete news
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  deleteNews(@Param('id') id: string) {
+    return this.newsService.deleteNews(id);
   }
 }

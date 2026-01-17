@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { News } from './schemas/news.schema';
 import { Model } from 'mongoose';
@@ -26,16 +31,35 @@ export class NewsService {
       throw new ConflictException('News with this title already exists');
     }
 
-    return this.newsModel.create({
-      ...createNewsDto,
-      slug,
-      imageUrl,
-      imagePublicId,
-    });
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'News created successfully',
+      data: await this.newsModel.create({
+        ...createNewsDto,
+        slug,
+        imageUrl,
+        imagePublicId,
+      }),
+    };
   }
 
   // Get all news
-  getAll() {
-    return this.newsModel.find().exec();
+  async getAll() {
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'News fetched successfully',
+      data: await this.newsModel.find().exec(),
+    };
+  }
+
+  // Delete news
+  async deleteNews(id: string) {
+    const news = await this.newsModel.findById(id).exec();
+
+    if (!news) {
+      throw new NotFoundException(`News with ID ${id} not found`);
+    }
+
+    return this.newsModel.findByIdAndDelete(id).exec();
   }
 }
