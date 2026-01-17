@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
@@ -17,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { UpdateNewsDto } from './dto/update-news.dto';
 
 @Controller('news')
 export class NewsController {
@@ -62,5 +64,35 @@ export class NewsController {
   @Delete(':id')
   deleteNews(@Param('id') id: string) {
     return this.newsService.deleteNews(id);
+  }
+
+  // Update news
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({}),
+    }),
+  )
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id')
+  async updateNews(
+    @Param('id') id: string,
+    @Body() dto: UpdateNewsDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    let imageResult: UploadApiResponse | null = null;
+
+    if (file && file.path) {
+      imageResult = await cloudinary.uploader.upload(file.path, {
+        folder: 'news-images',
+      });
+    }
+
+    return this.newsService.updateNews(
+      id,
+      dto,
+      imageResult?.secure_url,
+      imageResult?.public_id,
+    );
   }
 }
