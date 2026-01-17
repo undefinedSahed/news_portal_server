@@ -12,6 +12,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -54,8 +55,13 @@ export class NewsController {
   // Get all news
   @Get()
   @HttpCode(HttpStatus.OK)
-  getAll() {
-    return this.newsService.getAll();
+  getAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('category') category?: string,
+    @Query('isPublished') isPublished?: boolean,
+  ) {
+    return this.newsService.getAll(+page, +limit, category, isPublished);
   }
 
   // get single news

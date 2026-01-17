@@ -45,11 +45,37 @@ export class NewsService {
   }
 
   // Get all news
-  async getAll() {
+  async getAll(
+    page: number,
+    limit: number,
+    category?: string,
+    isPublished?: boolean,
+  ) {
+    const filter: Record<string, any> = {};
+    if (category) {
+      filter.category = category;
+    }
+    if (isPublished !== undefined) {
+      filter.isPublished = isPublished === true;
+    }
+
+    const total = await this.newsModel.countDocuments(filter).exec();
+    const data = await this.newsModel
+      .find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec();
+
     return {
       statusCode: HttpStatus.OK,
       message: 'News fetched successfully',
-      data: await this.newsModel.find().exec(),
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+      },
     };
   }
 
@@ -77,17 +103,16 @@ export class NewsService {
     if (!news) throw new NotFoundException('News not found');
 
     if (updateNewsDto.title) {
-      news.title = updateNewsDto.title as string;
-      news.slug = slugify(updateNewsDto.title as string, { lower: true });
+      news.title = updateNewsDto.title;
+      news.slug = slugify(updateNewsDto.title, { lower: true });
     }
 
-    if (updateNewsDto.content) news.content = updateNewsDto.content as string;
+    if (updateNewsDto.content) news.content = updateNewsDto.content;
     if (updateNewsDto.description !== undefined)
-      news.description = updateNewsDto.description as string;
-    if (updateNewsDto.category)
-      news.category = updateNewsDto.category as string;
+      news.description = updateNewsDto.description;
+    if (updateNewsDto.category) news.category = updateNewsDto.category;
     if (updateNewsDto.isPublished !== undefined)
-      news.isPublished = updateNewsDto.isPublished as boolean;
+      news.isPublished = updateNewsDto.isPublished;
 
     if (imageUrl) news.imageUrl = imageUrl;
     if (imagePublicId) news.imagePublicId = imagePublicId;
