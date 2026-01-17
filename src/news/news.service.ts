@@ -169,4 +169,22 @@ export class NewsService {
 
     return this.newsModel.findByIdAndDelete(id).exec();
   }
+
+  // Get categories
+  async getCategories() {
+    const existingCategories = await this.newsModel.distinct('category').exec();
+    if (existingCategories.length > 0) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Categories fetched successfully',
+        data: existingCategories,
+      };
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'No categories found',
+      data: [],
+    };
+  }
 }

@@ -82,6 +82,13 @@ export class NewsController {
     );
   }
 
+  // Get categories
+  @Get('categories')
+  @HttpCode(HttpStatus.OK)
+  getCategories() {
+    return this.newsService.getCategories();
+  }
+
   // get single news
   @Get(':slug')
   @HttpCode(HttpStatus.OK)
