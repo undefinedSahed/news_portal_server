@@ -24,7 +24,7 @@ export class News extends Document {
   @Prop({ unique: true })
   slug: string;
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   isPublished: boolean;
 }
 

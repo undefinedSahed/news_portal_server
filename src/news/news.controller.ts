@@ -18,7 +18,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import { UpdateNewsDto } from './dto/update-news.dto';
 
 @Controller('news')
@@ -37,19 +37,18 @@ export class NewsController {
     @Body() dto: CreateNewsDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    let imageResult: UploadApiResponse | null = null;
+    let imageUrl: string | undefined;
+    let imagePublicId: string | undefined;
 
     if (file && file.path) {
-      imageResult = await cloudinary.uploader.upload(file.path, {
+      const imageResult = await cloudinary.uploader.upload(file.path, {
         folder: 'news-images',
       });
+      imageUrl = imageResult.secure_url;
+      imagePublicId = imageResult.public_id;
     }
 
-    return this.newsService.create(
-      dto,
-      imageResult?.secure_url as string,
-      imageResult?.public_id,
-    );
+    return this.newsService.create(dto, imageUrl, imagePublicId);
   }
 
   // Get all news
@@ -59,9 +58,28 @@ export class NewsController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('category') category?: string,
-    @Query('isPublished') isPublished?: boolean,
   ) {
-    return this.newsService.getAll(+page, +limit, category, isPublished);
+    return this.newsService.getAll(+page, +limit, category);
+  }
+
+  // Get all news for admin (including unpublished)
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/all')
+  @HttpCode(HttpStatus.OK)
+  getAllForAdmin(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('category') category?: string,
+    @Query('isPublished') isPublished?: string,
+  ) {
+    const isPublishedBool =
+      isPublished === undefined ? undefined : isPublished === 'true';
+    return this.newsService.getAllForAdmin(
+      +page,
+      +limit,
+      category,
+      isPublishedBool,
+    );
   }
 
   // get single news
@@ -93,19 +111,17 @@ export class NewsController {
     @Body() dto: UpdateNewsDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    let imageResult: UploadApiResponse | null = null;
+    let imageUrl: string | undefined;
+    let imagePublicId: string | undefined;
 
     if (file && file.path) {
-      imageResult = await cloudinary.uploader.upload(file.path, {
+      const imageResult = await cloudinary.uploader.upload(file.path, {
         folder: 'news-images',
       });
+      imageUrl = imageResult.secure_url;
+      imagePublicId = imageResult.public_id;
     }
 
-    return this.newsService.updateNews(
-      id,
-      dto,
-      imageResult?.secure_url,
-      imageResult?.public_id,
-    );
+    return this.newsService.updateNews(id, dto, imageUrl, imagePublicId);
   }
 }

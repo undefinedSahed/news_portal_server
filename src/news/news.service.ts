@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import { CreateNewsDto } from './dto/create-news.dto';
 import slugify from 'slugify';
 import { UpdateNewsDto } from './dto/update-news.dto';
+import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
 export class NewsService {
@@ -21,7 +22,7 @@ export class NewsService {
   // Create News
   async create(
     createNewsDto: CreateNewsDto,
-    imageUrl: string,
+    imageUrl?: string,
     imagePublicId?: string,
   ) {
     const slug = slugify(createNewsDto.title, { lower: true });
@@ -32,20 +33,49 @@ export class NewsService {
       throw new ConflictException('News with this title already exists');
     }
 
+    const data: Record<string, any> = {
+      ...createNewsDto,
+      slug,
+    };
+    if (imageUrl) data.imageUrl = imageUrl;
+    if (imagePublicId) data.imagePublicId = imagePublicId;
+
     return {
       statusCode: HttpStatus.CREATED,
       message: 'News created successfully',
-      data: await this.newsModel.create({
-        ...createNewsDto,
-        slug,
-        imageUrl,
-        imagePublicId,
-      }),
+      data: await this.newsModel.create(data),
     };
   }
 
   // Get all news
-  async getAll(
+  async getAll(page: number, limit: number, category?: string) {
+    const filter: Record<string, any> = { isPublished: true };
+    if (category) {
+      filter.category = category;
+    }
+
+    const total = await this.newsModel.countDocuments(filter).exec();
+    const data = await this.newsModel
+      .find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'News fetched successfully',
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+      },
+    };
+  }
+
+  // Get all news for admin (including unpublished)
+  async getAllForAdmin(
     page: number,
     limit: number,
     category?: string,
@@ -56,7 +86,7 @@ export class NewsService {
       filter.category = category;
     }
     if (isPublished !== undefined) {
-      filter.isPublished = isPublished === true;
+      filter.isPublished = isPublished;
     }
 
     const total = await this.newsModel.countDocuments(filter).exec();
@@ -130,6 +160,11 @@ export class NewsService {
 
     if (!news) {
       throw new NotFoundException(`News with ID ${id} not found`);
+    }
+
+    const newsImagePublicId = news.imagePublicId;
+    if (newsImagePublicId) {
+      await cloudinary.uploader.destroy(newsImagePublicId);
     }
 
     return this.newsModel.findByIdAndDelete(id).exec();
