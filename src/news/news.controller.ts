@@ -5,6 +5,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   Body,
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseGuards,
@@ -42,5 +43,11 @@ export class NewsController {
       imageResult?.secure_url as string,
       imageResult?.public_id,
     );
+  }
+
+  // Get all news
+  @Get()
+  getAll() {
+    return this.newsService.getAll();
   }
 }

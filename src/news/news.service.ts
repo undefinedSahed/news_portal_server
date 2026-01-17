@@ -12,6 +12,7 @@ export class NewsService {
     private readonly newsModel: Model<News>,
   ) {}
 
+  // Create News
   async create(
     createNewsDto: CreateNewsDto,
     imageUrl: string,
@@ -31,5 +32,10 @@ export class NewsService {
       imageUrl,
       imagePublicId,
     });
+  }
+
+  // Get all news
+  getAll() {
+    return this.newsModel.find().exec();
   }
 }
