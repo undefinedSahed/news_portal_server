@@ -58,6 +58,13 @@ export class NewsController {
     return this.newsService.getAll();
   }
 
+  // get single news
+  @Get(':slug')
+  @HttpCode(HttpStatus.OK)
+  getSingleNews(@Param('slug') slug: string) {
+    return this.newsService.getSingleNews(slug);
+  }
+
   // Delete news
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

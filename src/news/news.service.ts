@@ -53,6 +53,19 @@ export class NewsService {
     };
   }
 
+  // Get single news
+  async getSingleNews(slug: string) {
+    const news = await this.newsModel.findOne({ slug }).exec();
+
+    if (!news) throw new NotFoundException('News not found');
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'News fetched successfully',
+      data: news,
+    };
+  }
+
   // Update news
   async updateNews(
     id: string,
