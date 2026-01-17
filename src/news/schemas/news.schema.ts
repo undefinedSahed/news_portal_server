@@ -3,6 +3,12 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class News extends Document {
+  @Prop({ required: false })
+  imageUrl: string;
+
+  @Prop({ required: false })
+  imagePublicId: string;
+
   @Prop({ required: true })
   title: string;
 

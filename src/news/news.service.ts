@@ -12,7 +12,11 @@ export class NewsService {
     private readonly newsModel: Model<News>,
   ) {}
 
-  async create(createNewsDto: CreateNewsDto) {
+  async create(
+    createNewsDto: CreateNewsDto,
+    imageUrl: string,
+    imagePublicId?: string,
+  ) {
     const slug = slugify(createNewsDto.title, { lower: true });
 
     const existingNews = await this.newsModel.findOne({ slug });
@@ -24,6 +28,8 @@ export class NewsService {
     return this.newsModel.create({
       ...createNewsDto,
       slug,
+      imageUrl,
+      imagePublicId,
     });
   }
 }

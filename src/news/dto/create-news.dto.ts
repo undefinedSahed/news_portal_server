@@ -7,8 +7,9 @@ export class CreateNewsDto {
   @IsString()
   content: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsString()
   category: string;
