@@ -12,7 +12,6 @@ The app supports user authentication, role-based access, and fully integrated **
 - [Setup & Installation](#setup--installation)
 - [Environment Variables](#environment-variables)
 - [Running the Application](#running-the-application)
-- [API Endpoints](#api-endpoints)
 ---
 
 ## Features
